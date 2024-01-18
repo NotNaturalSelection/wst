@@ -57,4 +57,15 @@ public class Item {
     public void setPower(int power) {
         this.power = power;
     }
+
+    @Override
+    public String toString() {
+        return "Item{" +
+                "name='" + name + '\'' +
+                ", description='" + description + '\'' +
+                ", price=" + price +
+                ", level=" + level +
+                ", power=" + power +
+                '}';
+    }
 }

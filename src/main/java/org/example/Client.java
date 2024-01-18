@@ -1,78 +1,46 @@
 package org.example;
 
-import org.example.client.ws.*;
+import org.example.common.Item;
+import org.springframework.core.ParameterizedTypeReference;
+import org.springframework.http.ResponseEntity;
+import org.springframework.web.client.RestClient;
 
-import java.net.MalformedURLException;
-import java.net.URL;
 import java.util.List;
 
 public class Client {
+    RestClient client;
 
-    private static String str(Item item) {
-        return "Item{" +
-                "name='" + item.getName() + '\'' +
-                ", description='" + item.getDescription() + '\'' +
-                ", price=" + item.getPrice() +
-                ", level=" + item.getLevel() +
-                ", power=" + item.getPower() +
-                '}';
+    public Client(RestClient client) {
+        this.client = client;
     }
-    private static final String NEW_ITEM_NAME = "Magic wand";
-    private static final String NOT_EXISTING_NAME = "ThisNameDoesn'tExist";
-    public static void main(String[] args) throws MalformedURLException {
-        try {
-            URL url = new URL("http://localhost:8080/itemService?wsdl");
-            SoapItemWebService_Service itemService = new SoapItemWebService_Service(url);
-            List<Item> items = itemService.getSoapItemWebServicePort().getItems();
-            System.out.println("Items count: " + items.size());
-            for (Item item : items) {
-                System.out.println(str(item));
-            }
-            System.out.println("Creating item with existing identifier and expecting exception...");
 
-            try {
-                itemService.getSoapItemWebServicePort().createItem(NEW_ITEM_NAME, "The simplest magic accessories.", 15, 15, 5);
-            } catch (IdentifierAlreadyUsedException e) {
-                System.err.println("ERROR: Identifier '"+NEW_ITEM_NAME+"' is already used.");
-            } catch (EmptyIdentifierException e) {
-                System.err.println("ERROR: Identifier 'name' should be provided.");
-            }
+    public List<Item> getItems() {
+        return client.get().retrieve().toEntity(new ParameterizedTypeReference<List<Item>>() {}).getBody();
+    }
 
-            System.out.println("Creating item with null identifier and expecting exception...");
+    public String createItem(Item item) {
+        return client.post().body(item, new ParameterizedTypeReference<>() {
+        }).retrieve().body(String.class);
+    }
 
-            try {
-                itemService.getSoapItemWebServicePort().createItem(null, "The simplest magic accessories.", 15, 15, 5);
-            } catch (EmptyIdentifierException e) {
-                System.err.println("ERROR: Identifier 'name' should be provided.");
-            } catch (IdentifierAlreadyUsedException e) {
-                System.err.println("ERROR: Identifier '"+NEW_ITEM_NAME+"' is already used.");
-            }
+    public void updateItem(Item item) {
+        client.put().body(item, new ParameterizedTypeReference<>() {}).retrieve();
+    }
 
-            System.out.println("Updating non-existing item and expecting exception...");
-            try {
-                itemService.getSoapItemWebServicePort().updateItem(NOT_EXISTING_NAME, "The simplest magic accessories. New part of description will arrive soon", 15, 100, 5);
-            } catch (ItemNotFoundException e) {
-                System.err.println("ERROR: Item is not found by identifier '"+NOT_EXISTING_NAME+"'");
-            } catch (EmptyIdentifierException e) {
-                System.err.println("ERROR: Identifier 'name' should be provided.");
-            }
+    public String deleteItem(String name) {
+        return client.delete().uri("http://localhost:8080/items?name="+name).retrieve().body(String.class);
+    }
 
-            System.out.println("Deleting non-existing item and expecting exception...");
-            try {
-                itemService.getSoapItemWebServicePort().deleteItem(NOT_EXISTING_NAME);
-            } catch (ItemNotFoundException e) {
-                System.err.println("ERROR: Item is not found by identifier '"+NOT_EXISTING_NAME+"'");
-            } catch (EmptyIdentifierException e) {
-                System.err.println("ERROR: Identifier 'name' should be provided.");
-            }
-
-            items = itemService.getSoapItemWebServicePort().getItems();
-            System.out.println("Items count: " + items.size());
-            for (Item item : items) {
-                System.out.println(str(item));
-            }
-        } catch (ServiceException e) {
-            System.err.println("SHOULD NOT HAPPEN. Something went wrong on the server side: " + e.getFaultInfo().getMessage());
-        }
+    public static void main(String[] args) {
+        Client client = new Client(RestClient.create("http://localhost:8080/items"));
+        System.out.println("Listing elements...");
+        System.out.println(client.getItems());
+        client.createItem(new Item("Something expensive", "Proper description", 100, 100, 100));
+        client.updateItem(new Item("Something expensive", "Make it more expensive", 10000, 100, 100));
+        System.out.println("Checking that element is added...");
+        System.out.println(client.getItems());
+        client.deleteItem("Something expensive");
+        System.out.println("Checking that element is removed...");
+        System.out.println(client.getItems());
     }
 }

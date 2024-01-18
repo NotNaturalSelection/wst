@@ -1,17 +1,24 @@
 package org.example;
 
-import jakarta.xml.ws.Endpoint;
-import org.example.ws.SoapItemWebService;
+import org.postgresql.ds.PGSimpleDataSource;
+import org.springframework.boot.SpringApplication;
+import org.springframework.boot.autoconfigure.SpringBootApplication;
+import org.springframework.context.annotation.Bean;
 
-import javax.naming.NamingException;
-import java.sql.SQLException;
+import javax.sql.DataSource;
 
+@SpringBootApplication
 public class Server {
-    public static void main(String[] args) throws NamingException {
-        String url = "http://localhost:8080/itemService";
-        String dbUrl = "jdbc:postgresql://localhost:5432/postgres";
-        String user = "postgres";
-        String password = "postgres";
-        Endpoint.publish(url, new SoapItemWebService(new ManualConnectionManager(dbUrl, user, password)));
+    public static void main(String[] args) {
+        SpringApplication.run(Server.class, args);
+    }
+
+    @Bean
+    public DataSource dataSource() {
+        var ds = new PGSimpleDataSource();
+        ds.setUser("postgres");
+        ds.setPassword("postgres");
+        ds.setUrl("jdbc:postgresql://localhost:5432/postgres");
+        return ds;
     }
 }
