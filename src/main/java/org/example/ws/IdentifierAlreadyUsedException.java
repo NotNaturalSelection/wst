@@ -1,24 +1,20 @@
 package org.example.ws;
 
-import jakarta.xml.ws.WebFault;
 import org.example.errors.ItemServiceFault;
-@WebFault(faultBean = "org.example.errors.ItemServiceFault")
+import org.springframework.http.HttpStatus;
+import org.springframework.web.bind.annotation.ResponseStatus;
 
-public class IdentifierAlreadyUsedException extends Exception{
+@ResponseStatus(value = HttpStatus.CONFLICT)
+
+public class IdentifierAlreadyUsedException extends RuntimeException {
     private static final long serialVersionUID = -6647544772732631537L;
-    private final ItemServiceFault fault;
 
-    public IdentifierAlreadyUsedException(String message, ItemServiceFault fault) {
+    public IdentifierAlreadyUsedException(String message) {
         super(message);
-        this.fault = fault;
     }
 
-    public IdentifierAlreadyUsedException(String message, ItemServiceFault fault, Throwable cause) {
+    public IdentifierAlreadyUsedException(String message, Throwable cause) {
         super(message, cause);
-        this.fault = fault;
     }
 
-    public ItemServiceFault getFaultInfo() {
-        return fault;
-    }
 }

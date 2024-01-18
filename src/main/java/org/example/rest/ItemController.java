@@ -2,10 +2,7 @@ package org.example.rest;
 
 import org.example.PostgresItemDao;
 import org.example.common.Item;
-import org.example.common.ItemWebService;
 import org.example.ws.EmptyIdentifierException;
-import org.example.ws.IdentifierAlreadyUsedException;
-import org.example.ws.ItemNotFoundException;
 import org.example.ws.ServiceException;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.*;
@@ -29,18 +26,27 @@ public class ItemController  {
     }
 
     @PostMapping
-    public String createItem(@RequestBody Item item) throws ServiceException, IdentifierAlreadyUsedException, EmptyIdentifierException {
+    public String createItem(@RequestBody Item item) {
+        if (item.getName().isBlank()) {
+            throw new EmptyIdentifierException("Item should not have empty identifier 'name'");
+        }
         itemDao.saveItem(item);
         return item.getName();
     }
 
     @PutMapping
-    public void updateItem(@RequestBody Item item) throws ItemNotFoundException, EmptyIdentifierException {
+    public void updateItem(@RequestBody Item item) {
+        if (item.getName().isBlank()) {
+            throw new EmptyIdentifierException("Item should not have empty identifier 'name'");
+        }
         itemDao.updateItem(item);
     }
 
     @DeleteMapping
-    public void deleteItem(@RequestParam("name") String name) throws ItemNotFoundException, EmptyIdentifierException {
+    public void deleteItem(@RequestParam("name") String name) {
+        if (name.isBlank()) {
+            throw new EmptyIdentifierException("Item should not have empty identifier 'name'");
+        }
         itemDao.deleteItemByName(name);
     }
 }
