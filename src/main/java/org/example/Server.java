@@ -8,7 +8,7 @@ import java.sql.SQLException;
 
 public class Server {
     public static void main(String[] args) throws NamingException {
-        String url = "http://localhost:42577/ws/ws/itemService";
+        String url = "http://localhost:8080/itemService";
         String dbUrl = "jdbc:postgresql://localhost:5432/postgres";
         String user = "postgres";
         String password = "postgres";

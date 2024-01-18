@@ -1,6 +1,7 @@
 package org.example.ws;
 
 import jakarta.jws.WebMethod;
+import jakarta.jws.WebParam;
 import jakarta.jws.WebService;
 import org.example.DataSourceConnectionManager;
 import org.example.PostgresItemDao;
@@ -39,5 +40,24 @@ public class SoapItemWebService implements ItemWebService {
     @WebMethod(operationName = "getItems")
     public List<Item> getItems() {
         return itemDao.getItems();
+    }
+
+    @Override
+    @WebMethod(operationName = "createItem")
+    public String createItem(@WebParam(name = "name") String name, @WebParam(name = "description") String description, @WebParam(name = "level") int level, @WebParam(name = "power") int power, @WebParam(name = "price") int price) {
+        itemDao.saveItem(new Item(name, description, price, level, power));
+        return name;
+    }
+
+    @Override
+    @WebMethod(operationName = "updateItem")
+    public void updateItem(@WebParam(name = "name") String name, @WebParam(name = "description") String description, @WebParam(name = "level") int level, @WebParam(name = "power") int power, @WebParam(name = "price") int price) {
+        itemDao.updateItem(new Item(name, description, price, level, power));
+    }
+
+    @Override
+    @WebMethod(operationName = "deleteItem")
+    public void deleteItem(@WebParam(name = "name") String name) {
+        System.out.println("Deleted: "+itemDao.deleteItemByName(name));
     }
 }
