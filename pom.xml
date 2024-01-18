@@ -62,6 +62,19 @@
                     <version>4.0.1</version>
                     <executions>
                         <execution>
+                            <id>generate-wsdl</id>
+                            <phase>process-classes</phase>
+                            <goals>
+                                <goal>wsgen</goal>
+                            </goals>
+                            <configuration>
+                                <sei>org.example.ws.SoapItemWebService</sei>
+                                <genWsdl>true</genWsdl>
+                            </configuration>
+                        </execution>
+                        <execution>
+                            <id>generate-stubs</id>
+                            <phase>process-classes</phase>
                             <goals>
                                 <goal>wsimport</goal>
                             </goals>
@@ -70,12 +83,11 @@
                     <configuration>
                         <!-- The name of your generated source package -->
                         <packageName>org.example.client.ws</packageName>
-                        <wsdlUrls>
-                            <wsdlUrl>
-                                http://localhost:8080/itemService?wsdl
-<!--                                http://localhost:42577/ws/ws/itemService?wsdl-->
-                            </wsdlUrl>
-                        </wsdlUrls>
+                        <wsdlDirectory>target/generated-sources/wsdl</wsdlDirectory>
+                        <wsdlFiles>
+                            <wsdlFile>SoapItemWebService.wsdl</wsdlFile>
+                        </wsdlFiles>
+                        <wsdlLocation>http://localhost:8080/test</wsdlLocation>
                         <keep>true</keep>
                     </configuration>
                 </plugin>

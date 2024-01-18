@@ -2,6 +2,10 @@ package org.example;
 
 import org.example.common.ConnectionManager;
 import org.example.common.Item;
+import org.example.errors.ItemServiceFault;
+import org.example.ws.IdentifierAlreadyUsedException;
+import org.example.ws.ItemNotFoundException;
+import org.example.ws.ServiceException;
 
 import java.sql.Connection;
 import java.sql.PreparedStatement;
@@ -19,7 +23,7 @@ public class PostgresItemDao {
         this.cm = cm;
     }
 
-    public List<Item> getItems() {
+    public List<Item> getItems() throws ServiceException {
         List<Item> items = new LinkedList<>();
         try (Connection connection = cm.getConnection()){
             ResultSet rs = connection.createStatement().executeQuery("select * from public.items;");
@@ -34,11 +38,12 @@ public class PostgresItemDao {
             }
         } catch (SQLException e) {
             Logger.getLogger(PostgresItemDao.class.getName()).log(Level.WARNING, "Unexpected ending of getItems method", e);
+            throw new ServiceException("Unexpected exception", ItemServiceFault.defaultInstance(), e);
         }
         return items;
     }
 
-    public void saveItem(Item item) {
+    public void saveItem(Item item) throws IdentifierAlreadyUsedException {
         try (Connection connection = cm.getConnection()){
             PreparedStatement st = connection.prepareStatement("insert into public.items(name, description, level, price, power) values(?, ?, ?, ?, ?);");
             st.setString(1, item.getName());
@@ -48,12 +53,11 @@ public class PostgresItemDao {
             st.setInt(5, item.getPower());
             st.executeUpdate();
         } catch (SQLException e) {
-            Logger.getLogger(PostgresItemDao.class.getName()).log(Level.WARNING, "Unexpected ending of saveItem method", e);
+            throw new IdentifierAlreadyUsedException("Item with name '"+item.getName()+"' already exists", ItemServiceFault.defaultInstance(), e);
         }
     }
 
-    public boolean updateItem(Item item) {
-        int rowsModified = 0;
+    public void updateItem(Item item) throws ItemNotFoundException {
         try (Connection connection = cm.getConnection()){
             PreparedStatement st = connection.prepareStatement("update public.items set description = ?, level = ?, price = ?, power = ? where name = ?;");
             st.setString(1, item.getDescription());
@@ -61,23 +65,42 @@ public class PostgresItemDao {
             st.setInt(3, item.getPrice());
             st.setInt(4, item.getPower());
             st.setString(5, item.getName());
-            rowsModified = st.executeUpdate();
+            if (st.executeUpdate() == 0) {
+                throw new ItemNotFoundException("Item with name '"+item.getName()+"' is not found", ItemServiceFault.defaultInstance());
+            }
         } catch (SQLException e) {
             Logger.getLogger(PostgresItemDao.class.getName()).log(Level.WARNING, "Unexpected ending of saveItem method", e);
         }
-        return rowsModified == 1;
     }
 
-    public boolean deleteItemByName(String name) {
-        int rowsDeleted = 0;
+    public Item getItemByName(String name) throws ItemNotFoundException, ServiceException {
+        try (Connection connection = cm.getConnection()){
+            ResultSet rs = connection.createStatement().executeQuery("select * from public.items;");
+            if (!rs.next()) {
+                throw new ItemNotFoundException("Item with name '" + name + "' is not found", ItemServiceFault.defaultInstance());
+            }
+
+            return new Item(
+                    rs.getString("name"),
+                    rs.getString("description"),
+                    rs.getInt("price"),
+                    rs.getInt("level"),
+                    rs.getInt("power"));
+        } catch (SQLException e) {
+            Logger.getLogger(PostgresItemDao.class.getName()).log(Level.WARNING, "Unexpected ending of getItem method", e);
+            throw new ServiceException("Unexpected exception", ItemServiceFault.defaultInstance(), e);
+        }
+    }
+    public void deleteItemByName(String name) throws ItemNotFoundException {
         try (Connection connection = cm.getConnection()){
             PreparedStatement st = connection.prepareStatement("delete from public.items where name=?;");
             st.setString(1, name);
-            rowsDeleted = st.executeUpdate();
+            if(st.executeUpdate() == 0) {
+                throw new ItemNotFoundException("Item with name '" + name + "' is not found", ItemServiceFault.defaultInstance());
+            }
         } catch (SQLException e) {
             Logger.getLogger(PostgresItemDao.class.getName()).log(Level.WARNING, "Unexpected ending of deleteItem method", e);
         }
-        return rowsDeleted == 1;
     }
 
 }

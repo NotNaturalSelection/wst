@@ -8,6 +8,7 @@ import org.example.PostgresItemDao;
 import org.example.common.ConnectionManager;
 import org.example.common.Item;
 import org.example.common.ItemWebService;
+import org.example.errors.ItemServiceFault;
 
 import javax.naming.NamingException;
 import java.util.List;
@@ -38,26 +39,45 @@ public class SoapItemWebService implements ItemWebService {
 
     @Override
     @WebMethod(operationName = "getItems")
-    public List<Item> getItems() {
+    public List<Item> getItems() throws ServiceException {
         return itemDao.getItems();
     }
 
     @Override
+    @WebMethod(operationName = "getItem")
+    public Item getItem(@WebParam(name = "name") String name) throws ItemNotFoundException, ServiceException, EmptyIdentifierException {
+        if (name == null || name.isBlank()) {
+            throw new EmptyIdentifierException("Identifier 'name' should not be empty", ItemServiceFault.defaultInstance());
+        }
+        return itemDao.getItemByName(name);
+    }
+
+
+    @Override
     @WebMethod(operationName = "createItem")
-    public String createItem(@WebParam(name = "name") String name, @WebParam(name = "description") String description, @WebParam(name = "level") int level, @WebParam(name = "power") int power, @WebParam(name = "price") int price) {
+    public String createItem(@WebParam(name = "name") String name, @WebParam(name = "description") String description, @WebParam(name = "level") int level, @WebParam(name = "power") int power, @WebParam(name = "price") int price) throws ServiceException, IdentifierAlreadyUsedException, EmptyIdentifierException {
+        if (name == null || name.isBlank()) {
+            throw new EmptyIdentifierException("Identifier 'name' should not be empty", ItemServiceFault.defaultInstance());
+        }
         itemDao.saveItem(new Item(name, description, price, level, power));
         return name;
     }
 
     @Override
     @WebMethod(operationName = "updateItem")
-    public void updateItem(@WebParam(name = "name") String name, @WebParam(name = "description") String description, @WebParam(name = "level") int level, @WebParam(name = "power") int power, @WebParam(name = "price") int price) {
+    public void updateItem(@WebParam(name = "name") String name, @WebParam(name = "description") String description, @WebParam(name = "level") int level, @WebParam(name = "power") int power, @WebParam(name = "price") int price) throws ItemNotFoundException, EmptyIdentifierException {
+        if (name == null || name.isBlank()) {
+            throw new EmptyIdentifierException("Identifier 'name' should not be empty", ItemServiceFault.defaultInstance());
+        }
         itemDao.updateItem(new Item(name, description, price, level, power));
     }
 
     @Override
     @WebMethod(operationName = "deleteItem")
-    public void deleteItem(@WebParam(name = "name") String name) {
-        System.out.println("Deleted: "+itemDao.deleteItemByName(name));
+    public void deleteItem(@WebParam(name = "name") String name) throws ItemNotFoundException, EmptyIdentifierException {
+        if (name == null || name.isBlank()) {
+            throw new EmptyIdentifierException("Identifier 'name' should not be empty", ItemServiceFault.defaultInstance());
+        }
+        itemDao.deleteItemByName(name);
     }
 }
