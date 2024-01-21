@@ -6,7 +6,6 @@ import org.example.ws.IdentifierAlreadyUsedException;
 import org.example.ws.ItemNotFoundException;
 import org.springframework.core.ParameterizedTypeReference;
 import org.springframework.http.HttpStatusCode;
-import org.springframework.http.ResponseEntity;
 import org.springframework.web.client.HttpClientErrorException;
 import org.springframework.web.client.RestClient;
 
