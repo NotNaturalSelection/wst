@@ -1,6 +1,6 @@
 package org.example.ws;
 
-import jakarta.xml.ws.WebFault;
+import javax.xml.ws.WebFault;
 import org.example.errors.ItemServiceFault;
 
 @WebFault(faultBean = "org.example.errors.ItemServiceFault")

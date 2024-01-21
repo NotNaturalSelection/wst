@@ -4,6 +4,6 @@
         version="2.0">
     <endpoint
             name="itemService"
-            implementation="org.example.ws.SoapItemWebService"
+            implementation="org.example.ws.client1.SoapItemWebService"
             url-pattern="/ws/itemService"/>
 </endpoints>

@@ -1,7 +1,7 @@
 package org.example;
 
 import org.example.common.ConnectionManager;
-import jakarta.annotation.Resource;
+import javax.annotation.Resource;
 
 import javax.naming.InitialContext;
 import javax.naming.NamingException;
